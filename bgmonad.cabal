@@ -17,7 +17,7 @@ maintainer:         prietus@live.com
 category:           System
 build-type:         Simple
 extra-doc-files:    README.md
-data-files:         examples/bgmonad.hs
+data-files:         examples/bgmonad.hs, examples/dotfiles/config/bgmonad/bgmonad.hs
 extra-source-files: protocol/*.xml, tools/gen-protocol.py, tools/regen.sh
 
 flag dynamic-config

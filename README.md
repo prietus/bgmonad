@@ -41,7 +41,8 @@ startupHook = spawnOnce "bgmonad"
 
 Without a configuration `bgmonad` shows `~/.config/wallpaper` (make it a
 link to an image) with the `flow` effect. To change it, write
-`~/.config/bgmonad/bgmonad.hs` (see [examples/bgmonad.hs](examples/bgmonad.hs)):
+`~/.config/bgmonad/bgmonad.hs` (see [examples/bgmonad.hs](examples/bgmonad.hs), or
+the one I use in [examples/dotfiles](examples/dotfiles/config/bgmonad/bgmonad.hs)):
 
 ```haskell
 import Bgmonad
