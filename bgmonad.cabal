@@ -1,0 +1,80 @@
+cabal-version:      3.0
+name:               bgmonad
+version:            0.1.0
+synopsis:           A living wallpaper for Wayland, written and configured in Haskell
+description:
+  bgmonad draws the desktop background of Wayland compositors with
+  wlr-layer-shell. It is configured with a Haskell file, in the spirit of
+  xmonad: a wallpaper is a rule (an image, a slideshow, one per workspace or
+  time of day) and effects are functions that make it flow slowly like
+  macOS's, slide with rivermonad's workspaces or blur behind windows. The
+  frames are computed on the fly from the still image. The Wayland protocol
+  is implemented in pure Haskell; images are loaded with gdk-pixbuf.
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             prietus
+maintainer:         prietus@live.com
+category:           System
+build-type:         Simple
+extra-doc-files:    README.md
+data-files:         examples/bgmonad.hs
+extra-source-files: protocol/*.xml, tools/gen-protocol.py, tools/regen.sh
+
+flag dynamic-config
+  description: Link the user configuration dynamically (-dynamic), for
+               distributions that ship Haskell libraries as shared objects
+               only, like Arch Linux.
+  default:     False
+  manual:      True
+
+common warnings
+  ghc-options: -Wall -Wno-name-shadowing
+
+library
+  import:           warnings
+  if flag(dynamic-config)
+    cpp-options:    -DDYNAMIC_CONFIG
+  hs-source-dirs:   src
+  default-language: GHC2021
+  default-extensions: LambdaCase
+  ghc-options:      -O2
+  exposed-modules:
+    Bgmonad
+    Bgmonad.Config
+    Bgmonad.Control
+    Bgmonad.Core
+    Bgmonad.Effects
+    Bgmonad.Engine
+    Bgmonad.Image
+    Bgmonad.JSON
+    Bgmonad.Main
+    Bgmonad.Recompile
+    Bgmonad.Rivermonad
+    Bgmonad.Wallpapers
+    Bgmonad.Wayland.Protocol
+    Bgmonad.Wayland.Wire
+  c-sources:        cbits/bgmonad.c, cbits/image.c, cbits/warp.c
+  cc-options:       -O3
+  pkgconfig-depends: gdk-pixbuf-2.0
+  extra-libraries:  pthread
+  build-depends:
+      base        >=4.16 && <5
+    , binary      >=0.8  && <0.11
+    , bytestring  >=0.11 && <0.13
+    , containers  >=0.6  && <0.8
+    , directory   >=1.3  && <1.4
+    , filepath    >=1.4  && <1.6
+    , network     >=3.1  && <3.3
+    , process     >=1.6  && <1.7
+    , stm         >=2.5  && <2.6
+    , text        >=2.0  && <2.2
+    , time        >=1.9  && <1.15
+    , unix        >=2.7  && <2.9
+
+executable bgmonad
+  import:           warnings
+  main-is:          Main.hs
+  hs-source-dirs:   app
+  default-language: GHC2021
+  ghc-options:      -threaded -rtsopts
+  build-depends:    base, bgmonad
