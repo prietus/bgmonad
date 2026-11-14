@@ -12,9 +12,8 @@ license=('BSD-3-Clause')
 depends=('ghc' 'ghc-libs' 'haskell-network' 'gdk-pixbuf2')
 optdepends=('rivermonad: wallpapers per workspace and the parallax between them'
             'libnotify: notifications when the configuration fails to compile')
-# After tagging v$pkgver: updpkgsums.
 source=("$pkgname-$pkgver.tar.gz::$url/archive/v$pkgver.tar.gz")
-sha256sums=('SKIP')
+sha256sums=('55bbc072161bcebbc93da8d38f504f5ca468cc767b702ee450a5765623aeb504')
 
 build() {
   cd $pkgname-$pkgver
