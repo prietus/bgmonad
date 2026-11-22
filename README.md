@@ -119,7 +119,10 @@ much for the compositor in a virtual machine. Three knobs:
 - `busyFps = Just 5` (or `Just 0`) moves the wallpaper in slow motion (or
   not at all) while the workspace has windows and you can barely see it.
 - `fps`: the stock effects move a fraction of a pixel per frame, so 20 is
-  as smooth as 60. Lower it further if you like.
+  as smooth as 60.
+- `liveFps = Just 8` draws the motion that never stops (`flow`, `drift`)
+  at 8 frames per second, while workspace switches and crossfades keep
+  the full `fps`.
 
 `bgmonad pause` stops the motion altogether.
 

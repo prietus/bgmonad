@@ -45,6 +45,11 @@ data Config = Config
     -- ^ frames per second while something moves. The motion of the
     -- stock effects is slow and smooth: 20 looks the same as 60 and costs
     -- a third.
+  , liveFps     :: Maybe Int
+    -- ^ frames per second of the motion that never stops ('flow',
+    -- 'drift'), when it can do with fewer than the transitions: with
+    -- @fps = 20, liveFps = Just 8@ the wallpaper flows at 8 frames per
+    -- second but still slides and crossfades at 20. 'Nothing' = 'fps'.
   , busyFps     :: Maybe Int
     -- ^ frames per second while the workspace shown by rivermonad has
     -- windows, when you would rather not spend much on a wallpaper you
@@ -76,6 +81,7 @@ defaultConfig = Config
   , transition = 1.2
   , easing = 0.35
   , fps = 20
+  , liveFps = Nothing
   , busyFps = Nothing
   , renderScale = 1
   , threads = 0

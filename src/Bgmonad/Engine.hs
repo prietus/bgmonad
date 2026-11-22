@@ -641,9 +641,12 @@ draw env b now = do
             -- behind windows the motion may be slower, or stop
             behind = bBusyTo b > 0
             rate = fromIntegral (max 1 (fps cfg)) :: Double
+            -- what moves on its own is slow and can do with fewer frames
+            -- than a workspace switch or a crossfade
+            live = maybe rate (min rate . fromIntegral . max 1) (liveFps cfg)
             calm = case busyFps cfg of
-              Just n | behind -> min rate (fromIntegral (max 0 n))
-              _ -> rate
+              Just n | behind -> min live (fromIntegral (max 0 n))
+              _ -> live
             frozen = sPaused s || calm <= 0
             -- the animation goes on from where it was last seen: time
             -- spent hidden, paused or waiting does not count

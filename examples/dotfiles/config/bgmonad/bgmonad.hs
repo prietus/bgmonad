@@ -18,7 +18,7 @@ main = bgmonad def
 
   , effects =
       [ flow             -- the lines of the picture drift slowly, like macOS's
-      , parallax 0.03    -- and it slides a little as you change workspace
+      , parallax 0.09    -- and it slides a little as you change workspace
       -- , dimWhenBusy 0.25    -- darker behind windows
       -- , blurWhenBusy 0.02   -- out of focus behind windows
       ]
@@ -28,5 +28,9 @@ main = bgmonad def
     -- Half the resolution, a quarter of the work (for bgmonad and for
     -- river); on this kind of wallpaper it looks the same. 1 = every pixel.
   , renderScale = 0.5
-    -- , busyFps = Just 5   -- slow motion while the workspace has windows (Just 0 = still)
+    -- As little CPU as possible (this is a virtual machine: every frame is
+    -- expensive for river too):
+  , busyFps = Just 0     -- still while the workspace has windows: costs nothing
+  , liveFps = Just 8     -- on an empty workspace the flow needs few frames...
+  , fps = 20             -- ...but sliding between workspaces stays smooth
   }
