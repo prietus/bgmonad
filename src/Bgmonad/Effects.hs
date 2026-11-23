@@ -8,6 +8,7 @@ module Bgmonad.Effects
   , flowWith
   , drift
   , driftWith
+  , sway
     -- * Reacting to rivermonad
   , parallax
   , blurWhenBusy
@@ -90,6 +91,16 @@ driftWith amount period = mempty
           px = (amount - z) * sin (ph * 2) * 0.7
           py = (amount - z) * sin (ph + 1) * 0.7
       in \x y -> ((x - cx) * (-z / max cx 0.5) + px, (y - 0.5) * (-z / 0.5) + py)
+
+-- | The wallpaper glides sideways and back, on its own and forever: the
+-- slide of 'parallax' without changing workspace. @sway 0.04 60@ moves it
+-- 4% of the screen height to each side, taking a minute to come back.
+sway :: Double -> Double -> Effect
+sway amount period = mempty
+  { fxWarp = Just (\fr -> let dx = amount * sin (2 * pi * frTime fr / period) in \_ _ -> (dx, 0))
+  , fxMargin = abs amount
+  , fxLive = True
+  }
 
 -- | The wallpaper slides sideways as you move through rivermonad's
 -- workspaces, like the home screen of a phone: @parallax 0.04@ moves it

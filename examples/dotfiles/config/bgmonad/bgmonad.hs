@@ -19,6 +19,7 @@ main = bgmonad def
   , effects =
       [ flow             -- the lines of the picture drift slowly, like macOS's
       , parallax 0.09    -- and it slides a little as you change workspace
+      , sway 0.04 60     -- and glides sideways by itself: this far, back in this many seconds
       -- , dimWhenBusy 0.25    -- darker behind windows
       -- , blurWhenBusy 0.02   -- out of focus behind windows
       ]

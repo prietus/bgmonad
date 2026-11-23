@@ -98,6 +98,7 @@ in `transition` seconds.
 |---|---|
 | `flow` | The slow flow. `flowWith defFlow { flowAmount = 0.012, flowSize = 0.7, flowSpeed = 1.5 }` to tune how far, how fine and how fast. |
 | `drift` | A slow zoom and pan (Ken Burns). `driftWith amount period`. |
+| `sway 0.04 60` | The wallpaper glides 4% of the screen height to each side and back, once a minute: the slide of `parallax`, on its own. |
 | `parallax 0.04` | The wallpaper slides 4% of the screen height between the first and the last workspace. |
 | `blurWhenBusy 0.02` | Blurred behind windows, sharp on an empty workspace. |
 | `dimWhenBusy 0.3` | 30% darker behind windows. |
