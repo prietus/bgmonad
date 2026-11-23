@@ -12,11 +12,12 @@ import System.Exit (exitFailure, exitSuccess)
 import System.IO (hPutStrLn, stderr)
 import System.Posix.Process (executeFile)
 
-import Bgmonad.Config (def)
+import Bgmonad.Config (def, still)
+import Bgmonad.Core (Config (..))
 import Bgmonad.Control
 import Bgmonad.Engine (runBgmonad)
 import Bgmonad.Recompile
-import Bgmonad.Wallpapers (expandHome)
+import Bgmonad.Wallpapers (expandHome, image)
 
 launch :: IO ()
 launch = do
@@ -26,6 +27,8 @@ launch = do
       ok <- recompile True
       if ok then exitSuccess else exitFailure
     ["--default"] -> runBgmonad def
+    ["--still"] -> runBgmonad still
+    ["--still", f] -> runBgmonad still { wallpaper = image f }
     ["--help"] -> usage >> exitSuccess
     ["--version"] -> putStrLn "bgmonad 0.1.0" >> exitSuccess
     [] -> do
@@ -54,7 +57,7 @@ launch = do
       | otherwise -> usage >> exitFailure
   where
     usage = putStr $ unlines $
-      [ "Usage: bgmonad [--recompile | --default | --version | COMMAND]"
+      [ "Usage: bgmonad [--recompile | --default | --still [FILE] | --version | COMMAND]"
       , ""
       , "Runs ~/.config/bgmonad/bgmonad.hs (rebuilt when it changes), or the"
       , "default wallpaper when there is none. Running it again replaces the"
@@ -62,6 +65,8 @@ launch = do
       , ""
       , "  --recompile  build the configuration and exit"
       , "  --default    ignore the configuration"
+      , "  --still      ignore the configuration and show a plain wallpaper that"
+      , "               does not move: FILE, or ~/.config/wallpaper"
       , ""
       , "Commands for the running bgmonad:"
       ] ++ commandHelp

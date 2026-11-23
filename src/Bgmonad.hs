@@ -12,13 +12,14 @@
 module Bgmonad
   ( bgmonad
   , def
+  , still
   , module Bgmonad.Core
   , module Bgmonad.Wallpapers
   , module Bgmonad.Effects
   , R.Workspace (..)
   ) where
 
-import Bgmonad.Config (def)
+import Bgmonad.Config (def, still)
 import Bgmonad.Core
 import Bgmonad.Effects
 import Bgmonad.Engine (runBgmonad)

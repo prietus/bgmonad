@@ -59,6 +59,20 @@ Like xmonad, bgmonad compiles this file when it changes. `bgmonad
 --recompile` checks it; running `bgmonad` again replaces the one that is
 running, once the new one has its first frame ready, so there is no flash.
 
+### A plain wallpaper
+
+If all you want is a picture on the desktop, like feh's or swaybg's, start
+from `still` instead of `def`:
+
+```haskell
+main = bgmonad still { wallpaper = image "~/Pictures/sea.jpg" }
+```
+
+It is drawn once, at full resolution, and uses no CPU afterwards. The
+wallpaper rules below still work (a slideshow, one per workspace...) and
+changes fade in. Without a configuration at all: `bgmonad --still`
+(`~/.config/wallpaper`) or `bgmonad --still FILE`.
+
 ### Wallpapers
 
 | | |
