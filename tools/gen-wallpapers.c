@@ -4,9 +4,10 @@
  *   gcc -O3 -ffast-math -fopenmp -o gen-wallpapers tools/gen-wallpapers.c -lm
  *   ./gen-wallpapers STYLE WIDTH HEIGHT SEED > out.ppm
  *
- * STYLE: 0 ribbons, 1 contours, 2 silk, 3 aurora, 4 ember. The ones in
- * wallpapers/ are 3840x2160 with seeds 3, 3, 11, 3 and 5; another seed
- * gives other shapes in the same style. */
+ * STYLE: 0 ribbons, 1 contours, 2 silk, 3 aurora, 4 ember, and the minimal
+ * ones: 5 line, 6 strands, 7 arcs, 8 dunes, 9 ring. The ones in wallpapers/
+ * are 3840x2160 with seeds 3, 3, 11, 3, 5 and 3 for all the minimal ones; another seed gives
+ * other shapes in the same style. */
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -71,6 +72,7 @@ static double ev(const field *f, double x, double y)
 static field F[8];
 static int style;
 static double px; /* one pixel, in screen heights */
+static double aspect;
 
 /* the scalar field whose level lines are the curves of the picture */
 static double height(double x, double y)
@@ -84,8 +86,19 @@ static double height(double x, double y)
         return 9.0 * ev(&F[0], wx, wy);
     case 2: /* silk */
         return 5.5 * (0.75 * wx - 0.5 * wy) + 1.6 * ev(&F[0], wx, wy);
-    default: /* aurora */
+    case 3: /* aurora */
         return 5.0 * (wy - 0.25 * wx) + 3.0 * ev(&F[0], wx, wy);
+    /* the minimal ones: one slow field, hardly bent */
+    case 5: /* line */
+        return y + 0.17 * ev(&F[6], x, y) + 0.05 * x;
+    case 6: /* strands */
+        return 0.8 * y + 0.25 * x + 0.15 * ev(&F[6], x, y);
+    case 7: /* arcs, around a point beyond the lower right corner */
+        return hypot(x - aspect * 0.94, y - 1.18) + 0.025 * ev(&F[6], x, y);
+    case 8: /* dunes */
+        return y + 0.13 * ev(&F[6], x, y) + 0.10 * x / aspect;
+    default: /* ring */
+        return hypot(x - aspect * 0.64, y - 0.5);
     }
 }
 
@@ -156,6 +169,76 @@ static col shade(double x, double y)
         c = add(c, sh, (0.45 * exp(-d * d / 2.5) + 0.12 * exp(-d / 18.0)) * (0.55 + 0.45 * s2));
         return c;
     }
+    if (style >= 5) {
+        /* Minimal: nearly all of it is the dark base. Distances are in
+         * pixels of a 1080 screen, so it looks the same at any size. */
+        #define DIST(c) (fabs(h - (c)) / g * 1080.0)
+        #define LINE(d, w) (1 - sstep((w) - 0.55, (w) + 0.55, (d)))
+        col bg = mix(CRUST, BASE, 0.60 + 0.30 * big);
+        if (style == 5) {
+            static col lr[3];
+            lr[0] = MAUVE; lr[1] = LAVENDER; lr[2] = BLUE;
+            col lc = ramp(lr, 3, x / aspect);
+            double c0 = 0.60, d = DIST(c0);
+            /* a breath of colour under the line, like a horizon */
+            if (h > c0) bg = add(bg, lc, 0.055 * exp(-(h - c0) / 0.22));
+            col c = mix(bg, lc, 0.95 * LINE(d, 0.95));
+            return add(c, lc, 0.11 * exp(-d / 40.0) + 0.03 * exp(-d / 220.0));
+        }
+        if (style == 6) {
+            col lc[3] = { PINK, MAUVE, BLUE };
+            col c = bg;
+            for (int k = 0; k < 3; k++) {
+                /* they run together and drift apart */
+                double d = DIST(0.66 + 0.035 * (k - 1) + 0.030 * ev(&F[3 + k], x * 0.8, y * 0.8));
+                c = mix(c, lc[k], 0.9 * LINE(d, 0.8));
+                c = add(c, lc[k], 0.07 * exp(-d / 32.0));
+            }
+            return c;
+        }
+        if (style == 7) {
+            double r0 = 0.56, bright[4] = { 0.95, 0.60, 0.38, 0.22 };
+            col lc = mix(LAVENDER, MAUVE, 0.5);
+            /* the disc inside the first arc is a shade lighter */
+            col c = mix(bg, mix(BASE, SURF0, 0.55), 1 - sstep(-0.7, 0.7, (h - r0) / g * 1080.0));
+            for (int k = 0; k < 4; k++) {
+                double d = DIST(r0 + 0.15 * k);
+                c = mix(c, lc, bright[k] * LINE(d, 0.9));
+                c = add(c, lc, 0.08 * bright[k] * exp(-d / 36.0));
+            }
+            return c;
+        }
+        if (style == 8) {
+            double edge[3] = { 0.40, 0.64, 0.88 };
+            col tone[4];
+            tone[0] = mix(CRUST, BASE, 0.5); tone[1] = BASE; tone[2] = mix(BASE, SURF0, 0.5); tone[3] = mix(BASE, SURF0, 0.95);
+            col c = scale(tone[0], 0.92 + 0.10 * big);
+            for (int k = 0; k < 3; k++) {
+                double sd = (h - edge[k]) / g * 1080.0;     /* signed: positive below the edge */
+                col t = scale(tone[k + 1], 0.92 + 0.10 * big);
+                /* each dune is lit at its crest and falls into shade */
+                t = scale(t, 1.06 - 0.20 * clamp01((h - edge[k]) / 0.24));
+                c = mix(c, t, sstep(-0.7, 0.7, sd));
+                /* and casts a soft shadow on the one behind */
+                if (sd < 0) c = scale(c, 1 - 0.22 * exp(sd / 26.0));
+                col rim = k == 0 ? mix(PEACH, ROSEWATER, 0.4) : ROSEWATER;
+                double d = fabs(sd);
+                c = add(c, rim, (k == 0 ? 0.75 : 0.22) * LINE(d, 0.8) + (k == 0 ? 0.07 : 0.02) * exp(-d / 30.0));
+            }
+            return c;
+        }
+        {
+            double R = 0.30, d = DIST(R);
+            static col rr[4];
+            rr[0] = PINK; rr[1] = MAUVE; rr[2] = BLUE; rr[3] = TEAL;
+            double ang = atan2(y - 0.5, x - aspect * 0.64);
+            col lc = ramp(rr, 4, 0.5 + 0.5 * sin(ang + 0.9));
+            col c = bg;
+            if (h < R) c = add(c, lc, 0.075 * exp(-(R - h) / 0.11));
+            c = mix(c, lc, 0.95 * LINE(d, 1.0));
+            return add(c, lc, 0.12 * exp(-d / 42.0) + 0.03 * exp(-d / 200.0));
+        }
+    }
     /* aurora: curtains of colour over the dark base, with hairlines */
     {
         col c = mix(CRUST, BASE, 0.5 + 0.4 * big);
@@ -187,12 +270,14 @@ int main(int argc, char **argv)
     for (int i = 0; i < 20; i++) rnd();
     palette();
     px = 1.0 / H;
+    aspect = (double)W / H;
     F[0] = mkfield(5, 2.2, 0.55, 1.7);   /* the shape of the curves */
     F[1] = mkfield(3, 1.3, 0.5, 1.8);    /* domain warp */
     F[2] = mkfield(3, 1.3, 0.5, 1.8);
     F[3] = mkfield(2, 0.9, 0.5, 1.5);    /* slow light */
     F[4] = mkfield(3, 1.6, 0.6, 1.6);
     F[5] = mkfield(2, 1.1, 0.6, 1.6);
+    F[6] = mkfield(2, 1.5, 0.45, 1.7);  /* the minimal ones */
     uint8_t *out = malloc((size_t)W * H * 3);
     const int SS = 3;
     #pragma omp parallel for schedule(dynamic, 8)
